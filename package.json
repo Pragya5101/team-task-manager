@@ -2,11 +2,14 @@
   "name": "team-task-manager",
   "version": "1.0.0",
   "description": "Full-Stack Team Task Manager",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
-    "backend": "npm start --prefix backend",
-    "frontend": "npm run dev --prefix frontend",
-    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently \"npm run start --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=frontend",
+    "start": "node backend/server.js"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
