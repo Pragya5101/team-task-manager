@@ -1,3 +1,5 @@
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export const fetchAPI = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
   
@@ -17,7 +19,7 @@ export const fetchAPI = async (endpoint, options = {}) => {
   }
 
   try {
-    const response = await fetch(endpoint, config);
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
     
     // Check if the response actually contains a body
     const contentType = response.headers.get('content-type');
