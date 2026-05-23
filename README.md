@@ -1,40 +1,182 @@
-Team-task-manager
-The project is a collaborative Team Task Management System designed for teams to organize workflows, track project milestones, and assign tasks among members. The application uses a Role-Based Access Control (RBAC) system with two distinct user roles:
+# Team Task Manager
 
-Admins: Have high-level management privileges. They can create or delete projects, invite teammates to join projects, and create, modify, or delete tasks on the project boards.
-Members: Have collaborative access. They can view the projects they belong to, see their assigned tasks, and update task progress states (e.g., moving a task from "To Do" to "In Progress" or "Done").
+A premium, collaborative Team Task Management System designed for modern teams to organize workflows, track project milestones, and assign tasks among members. The application features a secure, asynchronous **Role-Based Access Control (RBAC)** architecture and supports **dual database operational modes** (local SQLite for development and remote PostgreSQL/Cloud Hosted databases for production).
 
-Tech Stack Architecture
-The system is split into two major component layers: the Backend (Server & Database) and the Frontend (User Interface).
+---
 
-1. The Backend Layer (/backend)
-The backend is responsible for data storage, route guards, API logic, and secure authentication.
-Server Engine: Built using Node.js and Express.js to handle HTTP requests and expose structured JSON REST API endpoints under the /api namespace.
-Database: Uses SQLite (a lightweight, file-based relational database) managed via asynchronous, Promise-wrapped database drivers in db.js.
-Relational Schema: The database includes four primary linked tables:
-users: Stores user credentials (name, email, secure hashed password, and role).
-projects: Stores project metadata and links them to an owner (ownerId).
-project_members: Handles the many-to-many relationship linking multiple users to multiple project workspaces.
-tasks: Holds individual task details, priorities (Low, Medium, High), status lanes (To Do, In Progress, Done), due dates, and foreign keys associating them to a specific project (projectId) and assignee (assignedToId).
-Authentication & Security:
-Password Hashing: User passwords are encrypted using bcryptjs before storage to protect credentials.
-JSON Web Tokens (JWT): Implements secure, stateless sessions. When users log in, the server generates a signed token containing their identity and role, which the client includes in subsequent request headers.
-Access Controls: Middleware functions like authenticateToken and requireAdmin guard sensitive endpoints, verifying JWT signatures and restricting administrative operations.
+## 🚀 Key Features
 
-2. The Frontend Layer (/frontend)
-The frontend is a fast, responsive Single Page Application (SPA) that provides a premium user experience.
-UI Framework: Built with React and bundled using Vite for fast, optimized compilation.
-Visual Design (Minimalist Slate Theme):
-Uses a human-written, clean flat slate theme. It avoids busy glowing components in favor of clean slate-50 (#f8fafc) page backgrounds, solid white card modules (#ffffff), slate-900 primary text, and clean borders (#e2e8f0).
-Features soft pastel-colored badges and clear typography (using Google's Inter font family) for maximum readability.
-Dynamic Kanban Board: Inside project details, tasks are arranged in a flat visual board categorized into columns ("To Do", "In Progress", "Done"). Users can instantly change task states using quick-select dropdown selectors.
-State & Session Context: A custom React Context provider (AuthContext.jsx) stores the active logged-in user state and handles token storage in the browser's localStorage so sessions persist across page refreshes.
-Input Constraints: Enforces that task due dates must be today or in the future only. This is locked on the frontend calendar UI via a dynamic min attribute on the HTML date picker and secured by secondary validation rules in the form submit handler.
+*   **Role-Based Access Control (RBAC):**
+    *   **Admins:** High-level privileges. Create/delete projects, invite team members, and perform full CRUD (Create, Read, Update, Delete) operations on tasks.
+    *   **Members:** Collaborative access. View projects they belong to, see their assigned tasks, and update task progress (e.g., transition state from "To Do" to "In Progress" or "Done").
+*   **Dual-Engine Database Architecture:**
+    *   **SQLite Mode:** Single-file local relational database setup out-of-the-box. Perfect for offline sandbox environments and swift zero-config local development.
+    *   **PostgreSQL Mode:** Seamless switch to enterprise-ready, remote, or cloud-hosted database systems (e.g., Neon, Supabase, AWS RDS) via environment variable mapping. Includes automatic SSL configuration and pooled client connections.
+*   **Secure Authentication & Session Controls:**
+    *   **Password Hashing:** Fully encrypted storage of passwords using `bcryptjs`.
+    *   **JWT Handshakes:** Secure, stateless session tokens embedded inside client request headers.
+    *   **Route Guards:** Asynchronous backend middleware checks user identities (`authenticateToken`) and restricts administrative tasks (`requireAdmin`).
+*   **Vibrant and Minimalist Slate UI:**
+    *   Crafted with a premium **Minimalist Slate Theme** (slate-50 backgrounds, pure white cards, sleek border outlines, pastel badges, and professional Inter typography).
+    *   **Interactive Kanban Board:** Displays task cards categorized by lane states ("To Do", "In Progress", "Done"). Statuses can be altered using in-card dropdown selectors.
+    *   **Data Constrains & Validations:** Future-locked calendar date inputs prevent tasks from having past due dates (secured on both frontend and backend).
 
-Development Execution Flow
-The project is unified at the root folder so developers can start both servers concurrently with a single command:
+---
 
-Unified Package Controller: A root package.json file uses a utility called concurrently to run two prefixes simultaneously.
-Launching Server Env: Running npm run dev kicks off:
-The Backend Server: Boots up on port 5000.
-The Frontend Client: Starts the Vite dev server on port 5173 (or 5174 if in use).
+## 📂 Project Architecture
+
+The codebase is organized as a unified monorepo-style structure using npm workspaces to easily manage and execute backend and frontend environments concurrently.
+
+```text
+team-task-manager/
+├── backend/                  # REST API Server & Database Layer
+│   ├── middleware/           # Security guards & route interceptors
+│   │   └── auth.js
+│   ├── routes/               # API Router Handlers
+│   │   ├── auth.js           # Signup & JWT login sessions
+│   │   ├── projects.js       # Project CRUD & invitations
+│   │   ├── tasks.js          # Task CRUD & state mutations
+│   │   └── users.js          # Team directory listings
+│   ├── .env.example          # Environment variable template
+│   ├── database.sqlite       # Local development SQLite file (Git ignored)
+│   ├── db.js                 # Dual SQLite / Postgres connector
+│   ├── package.json          # Node dependencies & setup scripts
+│   └── server.js             # Express app bootstrap & port binding
+├── frontend/                 # User Interface Layer (Single Page Application)
+│   ├── public/               # Static assets & icons
+│   ├── src/                  # React Core Files
+│   │   ├── components/       # Interface views & UI modals
+│   │   │   ├── Dashboard.jsx      # Workspace overview & statistics
+│   │   │   ├── Login.jsx          # Secure login modal
+│   │   │   ├── Signup.jsx         # Secure registration modal
+│   │   │   ├── Navbar.jsx         # Brand logo & profile context
+│   │   │   ├── ProjectList.jsx    # Project grid display
+│   │   │   ├── ProjectDetails.jsx # Kanban board & collaborative workspace
+│   │   │   └── TaskModal.jsx      # Task creator & editor module
+│   │   ├── context/          # React Global State
+│   │   │   └── AuthContext.jsx    # Session & token handlers
+│   │   ├── utils/            # Shared utilities
+│   │   │   └── api.js            # Axios-like custom fetch wrappers
+│   │   ├── App.jsx           # Routing & view-switching hub
+│   │   ├── index.css         # Styling system (Inter Font & Slate tokens)
+│   │   └── main.jsx          # Entry point
+│   ├── index.html            # Vite app template
+│   ├── package.json          # Frontend packages & dev dependencies
+│   └── vite.config.js        # Vite bundler options
+├── package.json              # Root-level unified NPM workspace config
+└── README.md                 # Primary technical documentation
+```
+
+---
+
+## ⚙️ Environment Configuration
+
+To run the backend server, navigate to the `backend/` directory and configure your environment variables.
+
+1.  Copy the example env template:
+    ```bash
+    cp backend/.env.example backend/.env
+    ```
+2.  Open `backend/.env` and update the configurations:
+    ```ini
+    # Port the backend server will listen on
+    PORT=5000
+
+    # Secret key used to sign and verify JSON Web Tokens (JWT)
+    JWT_SECRET=your_long_and_secure_random_secret_key_here
+
+    # Database connection string (PostgreSQL)
+    # E.g., Neon: postgresql://[USER]:[PASSWORD]@ep-[HOST].us-east-2.neon.tech/neondb?sslmode=require
+    # E.g., Supabase: postgresql://postgres:[PASSWORD]@db.[REF].supabase.co:5432/postgres
+    # Leave this empty to fall back to the local SQLite database file (database.sqlite)
+    DATABASE_URL=
+    ```
+
+---
+
+## 🖥️ Getting Started
+
+### Prerequisites
+*   Node.js (v16.x or higher)
+*   npm (v7.x or higher)
+
+### 1. Installation
+Install all root, backend, and frontend packages simultaneously using the root package manager:
+```bash
+npm install
+```
+
+### 2. Run in Development Mode
+Start both the Express backend server and the Vite React frontend client concurrently using the root shortcut:
+```bash
+npm run dev
+```
+*   **Backend REST API:** running on `http://localhost:5000`
+*   **Frontend SPA client:** running on `http://localhost:5173`
+
+### 3. Build for Production
+To bundle the frontend application into highly-optimized, static assets:
+```bash
+npm run build
+```
+The compiled frontend bundle will be placed in `frontend/dist`. 
+
+### 4. Running in Single-Process Production Mode
+When running the production build, the Express backend serves the static assets in `frontend/dist` directly, eliminating the need to host separate web servers.
+```bash
+npm start
+```
+The unified portal will be accessible on the port specified in your `.env` file (defaults to `http://localhost:5000`).
+
+---
+
+## 🔌 API Documentation
+
+All endpoints are prefixed with `/api`. Security-guarded endpoints require a valid JWT token sent within the `Authorization` header as a Bearer token: `Authorization: Bearer <JWT_TOKEN>`.
+
+### Authentication Routes (`/api/auth`)
+*   `POST /api/auth/signup` - Register a new user profile.
+    *   *Body:* `{ "name": "...", "email": "...", "password": "...", "role": "Admin" | "Member" }`
+*   `POST /api/auth/login` - Authenticate credentials and retrieve a JWT session token.
+    *   *Body:* `{ "email": "...", "password": "..." }`
+    *   *Response:* `{ "token": "...", "user": { "id": 1, "name": "...", "email": "...", "role": "..." } }`
+
+### User Routes (`/api/users`)
+*   `GET /api/users` *(Auth required)* - Fetch the list of registered team members to invite to projects or assign to tasks.
+
+### Project Routes (`/api/projects`)
+*   `GET /api/projects` *(Auth required)* - View all projects the user owns or belongs to.
+*   `POST /api/projects` *(Admin required)* - Create a new project.
+    *   *Body:* `{ "name": "Project Title", "description": "Details..." }`
+*   `DELETE /api/projects/:id` *(Admin required)* - Remove an existing project.
+*   `POST /api/projects/:id/members` *(Admin required)* - Invite a user to a project.
+    *   *Body:* `{ "userId": 12 }`
+
+### Task Routes (`/api/tasks`)
+*   `GET /api/tasks/project/:projectId` *(Auth required)* - Retrieve all task entries mapped to a specific project.
+*   `POST /api/tasks` *(Admin required)* - Create a new task in a project.
+    *   *Body:* `{ "title": "...", "description": "...", "priority": "Low" | "Medium" | "High", "dueDate": "YYYY-MM-DD", "projectId": 1, "assignedToId": 3 }`
+*   `PUT /api/tasks/:id` *(Auth required)* - Modify a task. Members can only update the task `status`. Admins can modify any task attribute.
+    *   *Body:* `{ "title": "...", "description": "...", "status": "...", "priority": "...", "dueDate": "...", "assignedToId": ... }`
+*   `DELETE /api/tasks/:id` *(Admin required)* - Remove a task from the board.
+
+---
+
+## 🛠️ Verification & Testing
+
+### Automated Local Verification
+You can inspect backend routes or run functional queries locally to check schema operations. Since the server automatically bootstraps tables if they do not exist, running the startup commands is sufficient to test data layer initialization:
+```bash
+npm run dev
+```
+Check the console logs to confirm:
+*   `Connected to SQLite database at .../database.sqlite` (Or `Connected to PostgreSQL database successfully.` if database URL is configured).
+*   `SQLite database tables initialized successfully.`
+*   `Database system initialized.`
+*   `Backend server listening on port 5000`
+
+### Interactive Walkthrough
+1.  **Register as Admin:** Sign up with the role "Admin". Create your first project boards.
+2.  **Add Team Members:** Register another user with the role "Member". In your Admin account, invite this member using their email/name within the project member selector.
+3.  **Assign Tasks:** Create new tasks. Select the newly added user under the "Assignee" field, prioritize the task, and pick a future deadline.
+4.  **Collaborate:** Log out and sign in as the Member. Check your dashboard. You can access the assigned project, view task descriptions, and slide tasks from "To Do" to "In Progress" as you complete them!
